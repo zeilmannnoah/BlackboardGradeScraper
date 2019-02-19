@@ -4,11 +4,12 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
   "author": "Noah Zeilmann",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.16.4",
     "puppeteer": "^1.12.2"
   }
 }

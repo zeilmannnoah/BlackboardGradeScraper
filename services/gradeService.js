@@ -1,12 +1,8 @@
-const puppeteer = require('puppeteer'),
-    fs = require('fs');
+const puppeteer = require('puppeteer');
 
-const USERNAME = process.env.BB_USERNAME,
-    PASSWORD = process.env.BB_PASSWORD;
-
-(async () => {
-    const browser = await puppeteer.launch({headless: true}),
-        page = await browser.newPage();
+async function getGrades() {
+    const browser = await puppeteer.launch({headless: true});
+    const page = await browser.newPage();
 
     let courseData, courseFrame;
 
@@ -21,8 +17,8 @@ const USERNAME = process.env.BB_USERNAME,
 
     console.log('Entering username and password');
     try {
-        await page.type('input#username', USERNAME);
-        await page.type('input#password', PASSWORD);
+        await page.type('input#username', 'naz796');
+        await page.type('input#password', 'Scootergrove90');
 
         await Promise.all([
             page.waitForNavigation({waitUntil: 'domcontentloaded'}),
@@ -67,13 +63,13 @@ const USERNAME = process.env.BB_USERNAME,
                 courseData = [];
 
             for (course of courses) {
-                let courseName = course.querySelector('.stream_area_name').innerText;
+                let entryName = course.querySelector('.stream_area_name').innerText;
                 
-                if (courseName.toUpperCase().includes(semesterCode)) {
+                if (entryName.toUpperCase().includes(semesterCode)) {
                     let gradeValue = course.querySelector('.grade-value').innerText,
-                        lastUpdated = course.querySelector('.stream_datestamp').innerText === '' ? '-' : course.querySelector('.stream_datestamp').innerText;
+                        lastUpdated = course.querySelector('.stream_datestamp').innerText;
 
-                    courseData.push({courseName, gradeValue, lastUpdated, gradeUrl: course.getAttribute('bb:rhs'), items: []});
+                    courseData.push({entryName, gradeValue, lastUpdated, gradeUrl: course.getAttribute('bb:rhs'), items: []});
                 }
             }
 
@@ -105,7 +101,7 @@ const USERNAME = process.env.BB_USERNAME,
                     let title = grade.querySelector('.cell.gradable').innerText.split("\n")[0],
                         due = grade.querySelector('.gradable > .activityType') ? grade.querySelector('.gradable > .activityType').innerText : 'No Due Date'
                         type = grade.querySelector('.itemCat').innerText,
-                        submitted = grade.querySelector('.lastActivityDate').innerText === '' ? "Not Submitted" : grade.querySelector('.lastActivityDate').innerText,
+                        submitted = grade.querySelector('.lastActivityDate').innerText === "" ? "Not Submitted" : grade.querySelector('.lastActivityDate').innerText,
                         status = grade.querySelector('.timestamp > .activityType').innerText,
                         isBoolean = grade.querySelector('.gradeStatus > span > span'),
                         score = isBoolean ? isBoolean.innerText : grade.querySelector('.grade > .grade').innerText,
@@ -119,7 +115,6 @@ const USERNAME = process.env.BB_USERNAME,
             }, course);
 
             course.items = parsedGrades;
-            delete course.gradeUrl;
         }
 
     }
@@ -133,12 +128,12 @@ const USERNAME = process.env.BB_USERNAME,
         await browser.close();
     }
     catch (err) {
-        console.error('Error closing browser\t', err);
+        console.error('Error closing browser');
         return;
     }
 
-    fs.writeFileSync('courses.JSON', JSON.stringify(courseData, null, 4));
-})();
+    return courseData;
+};
 
 function getSemesterCode() {
     let today = new Date(),
@@ -147,3 +142,5 @@ function getSemesterCode() {
 
     return (month > 6 ? "FA" : "SP") + year;
 }
+
+module.exports = {getGrades};
